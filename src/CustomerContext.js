@@ -1,41 +1,53 @@
-import React, {useState, createContext} from 'react';
+import React, {useState, createContext, useEffect} from 'react';
+import axios from 'axios';
 
 // create the customer context
 export const CustomerContext = createContext();
 
+const BASE_API_URL="https://3000-kunxinchor-sctp2mysql-n6kp14a21z3.ws-us110.gitpod.io";
+
 // create a component that can inject the context data to its children
 export default function CustomerContextData(props) {
-    const [customers, setCustomers] = useState([
-        {
-            'customer_id': 1,
-            'first_name': 'Linus',
-            'last_name': 'Tan',
-            'company_id': 1,
-            'employees': [1]
-        },
-        {
-            'customer_id': 2,
-            'first_name': 'Alex',
-            'last_name': 'Howe',
-            'company_id': 1,
-            'employees': [1]
-        },
-        {
-            'customer_id': 2,
-            'first_name': 'Alex',
-            'last_name': 'Howe',
-            'company_id': 1,
-            'employees': [1]
+
+    // the useEffect hooks allows us to a call a function
+    // after the component renders for the first time
+    useEffect(()=>{
+            
+        // as the effect function cannot be async we need to
+        // create a proxy function inside the effect function that is async
+        const fetchData = async () => {
+            const response = await axios.get(BASE_API_URL + "/api/customers");
+            console.log(response.data);
+            setCustomers(response.data.customers);
         }
+
+        fetchData();
+
+
+    }, []); // if the dependency array is empty, it means calls
+    // the effect function once and only once after the first render
+
+    const [customers, setCustomers] = useState([
+        
     ]);
 
     const dataOperations = {
         getCustomers: () => {
             return customers
         },
-        addCustomer: (firstName, lastName, companyId, rating, employees) => {
+        addCustomer: async (firstName, lastName, companyId, rating, employees) => {
+
+            const response = await axios.post(BASE_API_URL + "/api/customers", {
+                first_name : firstName,
+                last_name : lastName,
+                company_id: companyId,
+                rating: rating,
+                employees: employees
+            });
+
+
             const newCustomer = {
-                customer_id: Math.floor(Math.random() * 10000 + 1),
+                customer_id: response.data.new_customer_id,
                 first_name: firstName,
                 last_name : lastName,
                 company_id: companyId,
